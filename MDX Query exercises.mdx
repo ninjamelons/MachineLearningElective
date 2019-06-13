@@ -1,0 +1,110 @@
+/*
+SELECT [Measures].ALLMEMBERS ON COLUMNS,
+{[Date].[Calendar Year].&[2007]:
+[Date].[Calendar Year].&[2014]} ON ROWS
+FROM [Adventure Works]
+WHERE ({[Geography].[Geography].[Country].&[Germany],
+[Geography].[Geography].[Country].&[United Kingdom],
+[Geography].[Geography].[Country].&[United States]});
+
+SELECT [Measures].[Internet Sales Amount] ON COLUMNS,
+NONEMPTY({[Date].[Calendar Year].[All Periods],
+	[Date].[Calendar Year].&[2007]:
+	[Date].[Calendar Year].&[2014]}) ON ROWS
+FROM [Adventure Works]
+WHERE ([Geography].[Geography].[Country].&[United States],
+	[Product].[Category].&[1])
+
+SELECT ({[Measures].[Internet Sales Amount],[Measures].[Internet Order Count]}) ON COLUMNS,
+NONEMPTY({[Date].[Calendar Year].[All Periods],
+	[Date].[Calendar Year].&[2007]:
+	[Date].[Calendar Year].&[2014]}) ON ROWS
+FROM [Adventure Works]
+WHERE ({[Geography].[Geography].[Country].&[United States],
+		[Geography].[Geography].[Country].&[United Kingdom]},
+	{[Product].[Category].&[1],[Product].[Category].&[4]})
+
+SELECT ([Measures].[Reseller Order Count]) ON COLUMNS
+FROM [Adventure Works]
+WHERE ({[Geography].[Geography].[Country].&[Germany],
+		[Geography].[Geography].[Country].&[United States],
+		[Geography].[Geography].[Country].&[United Kingdom]},
+	{[Product].[Category].&[1],[Product].[Category].&[4]},
+	{[Source Currency].[Source Currency].&[EURO],
+	[Source Currency].[Source Currency].&[US Dollar]})
+
+SELECT ([Measures].[Internet Sales Amount]) ON COLUMNS,
+NONEMPTY({[Product].[Category].[All Products],
+		[Product].[Category].&[1]:
+		[Product].[Category].&[4]}) ON ROWS
+FROM [Adventure Works]
+
+SELECT ({[Date].[Calendar Year].&[2010],[Date].[Calendar Year].&[2011]}*
+		{[Reseller].[Reseller Type].[All Resellers],
+		[Reseller].[Reseller Type].[Business Type].&[Specialty Bike Shop],
+		[Reseller].[Reseller Type].[Business Type].&[Value Added Reseller],
+		[Reseller].[Reseller Type].[Business Type].&[Warehouse]}) ON COLUMNS,
+({[Product].[Category].[All Products]}*
+{[Customer].[Customer Geography].[All Customers],
+[Customer].[Customer Geography].[Country].&[Australia]:
+[Customer].[Customer Geography].[Country].&[United Kingdom]}*
+{[Measures].[Internet Gross Profit],
+[Measures].[Internet Sales Amount]}) ON ROWS
+FROM [Adventure Works]
+
+WITH MEMBER [Measures].[Median Sales Amount] AS
+	MEDIAN([Customer].[Customer Geography].CurrentMember.Children,
+	[Measures].[Internet Sales Amount])
+MEMBER [Measures].[Average Sales Amount] AS
+	AVG([Customer].[Customer Geography].CurrentMember.Children,
+	[Measures].[Internet Sales Amount])
+SELECT ({[Measures].[Internet Sales Amount],
+	[Measures].[Median Sales Amount],
+	[Average Sales Amount]}) ON COLUMNS,
+	[Customer].[Customer Geography].[State-Province] ON ROWS
+FROM [Adventure Works]
+WHERE [Date].[Calendar Year].&[2014]
+
+SELECT [Measures].[Reseller Sales Amount] ON COLUMNS,
+	TOPCOUNT([Geography].[City].[City]*
+			[Date].[Fiscal Year].[Fiscal Year],
+			10,
+			[Measures].[Reseller Sales Amount]) ON ROWS
+FROM [Adventure Works]
+WHERE [Product].[Category].&[1]
+
+WITH CALCULATED MEMBER [Measures].[Internet Sales Changerate] AS
+	([Date].[Calendar].CURRENTMEMBER,[Measures].[Internet Sales Amount]) /
+	([Date].[Calendar].PREVMEMBER,[Measures].[Internet Sales Amount]) - 1,
+	FORMAT_STRING = 'Percent'
+SELECT FILTER([Date].[Calendar].[Month],
+	NOT(ISEMPTY([Measures].[Internet Sales Amount]))) ON COLUMNS,
+	{[Measures].[Internet Sales Changerate],
+	[Measures].[Internet Sales Amount]} ON ROWS
+FROM [Adventure Works]
+WHERE [Customer].[Country].&[Germany]
+
+WITH CALCULATED MEMBER [Measures].[Average Reseller Sales] AS
+	([Measures].[Reseller Sales Amount]) /
+	([Measures].[Reseller Order Count])
+SELECT ({[Measures].[Reseller Sales Amount],
+		[Measures].[Reseller Order Count],
+		[Measures].[Average Reseller Sales]}) ON COLUMNS,
+	{[Geography].[State-Province].[All Geographies],
+	[Geography].[State-Province].[State-Province]} ON ROWS
+FROM [Adventure Works]
+
+WITH MEMBER [Measures].[Sales Amount Enum] AS
+CASE
+	WHEN [Measures].[Reseller Sales Amount] > 75000 THEN 'Very High Sales'
+	WHEN [Measures].[Reseller Sales Amount] > 50000 THEN 'High Sales'
+	WHEN [Measures].[Reseller Sales Amount] > 25000 THEN 'Medium Sales'
+	WHEN [Measures].[Reseller Sales Amount] > 0 THEN 'Low Sales'
+	ELSE 'N/A'
+END
+SELECT {[Date].[Calendar Year].&[2010]:
+		[Date].[Calendar Year].&[2013]} ON COLUMNS,
+	[Reseller].[Reseller].[Reseller] ON ROWS
+FROM [Adventure Works]
+WHERE [Measures].[Sales Amount Enum]
+*/
